@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#f5f6f8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="./manifest.json">
+<title>Manager Dashboard</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css">
+
+<link rel="stylesheet" href="style.css">
+
+
+<link rel="stylesheet" href="style.css">
+
+
+<link rel="stylesheet" href="style.css">
+
+
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css">
+
+<link rel="stylesheet" href="style.css">
+
+<link rel="stylesheet" href="style.css">
+
+<link rel="stylesheet" href="style.css">
+
+
+<link rel="stylesheet" href="style.css">
+
+
+<link rel="stylesheet" href="style.css">
+
+
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div><div class="smart-greeting" id="smartGreeting">GOOD MORNING, SIR</div><div class="smart-title"><h1>Feed Plant Control Center</h1></div><p>Manager Dashboard • <span id="reportDate">Latest</span></p><span class="selected-date-chip" id="selectedDateChip">Latest</span></div>
+    <div class="header-actions">
+      <button class="header-tool" onclick="openGlobalSearch()" aria-label="Search">🔎</button>
+      <button class="header-tool" onclick="openDateSelector()" aria-label="Date selector">📅</button>
+      <button class="notify-btn" onclick="openNotifications()" aria-label="Notifications">🔔<span id="notifyBadge" class="notify-badge hidden">0</span></button>
+      <div class="plant">🏭</div>
+    </div>
+  </div>
+
+  <div class="status-line">
+    <span id="statusDot" class="status-dot"></span>
+    <span id="connectionStatus">Loading...</span>
+    <span id="lastUpdated"></span>
+    <button class="refresh" onclick="manualRefresh()">↻ Refresh</button>
+    <button id="installBtn" class="install" onclick="installPWA()">Install</button>
+  </div>
+
+  <div class="date-strip" aria-label="Date navigation">
+    <button onclick="shiftViewDate(-1)" aria-label="Previous date">‹</button>
+    <div class="date-strip-main" onclick="openDateSelector()"><div><strong id="dateStripTitle">Latest available day</strong><small id="dateStripSub">Tap to change date</small></div><span class="date-state" id="dateStripState">LATEST</span></div>
+    <button onclick="shiftViewDate(1)" aria-label="Next date">›</button>
+  </div>
+
+  <!-- MANAGEMENT QUICK VIEW -->
+  <div class="card">
+    <div class="card-title"><h2>⚡ Management Quick View</h2><span>Tap for details</span></div>
+    <div class="quick-grid manager-quick-grid">
+      <div class="quick quick-kpi" onclick="openFeedTotals('production_day')"><p>Day Production</p><strong id="qProdDay">-- MT</strong><div class="spark" id="sparkProd"></div></div>
+      <div class="quick" onclick="openFeedTotals('production_month')"><p>Month Production</p><strong id="qProdMonth">-- MT</strong></div>
+      <div class="quick quick-kpi" onclick="openFeedTotals('dispatch_day')"><p>Day Dispatch</p><strong id="qDispDay">-- MT</strong><div class="spark" id="sparkDisp"></div></div>
+      <div class="quick" onclick="openFeedTotals('dispatch_month')"><p>Month Dispatch</p><strong id="qDispMonth">-- MT</strong></div>
+      <div class="quick" onclick="openRawCategory('PURCHASE')"><p>RM Received</p><strong id="qReceived">--</strong></div>
+      <div class="quick" onclick="openRawCategory('CONSUMPTION')"><p>RM Consumption</p><strong id="qConsumption">--</strong></div>
+      <div class="quick" onclick="openStockDetails()"><p>RM Closing</p><strong id="qClosing">--</strong></div>
+      <div class="quick" onclick="openFeedClosingDetails()"><p>Feed Closing</p><strong id="qFeedClosing">-- MT</strong><small id="qFeedClosingBagsMini" style="display:block;margin-top:3px;color:#64748b;font-weight:600">-- Bags</small></div>
+      <div class="quick" onclick="openStockForecast()"><p>RM Reorder</p><strong id="mergedReorder">--</strong></div>
+    </div>
+  </div>
+
+  <!-- BOMMAKAL PREMIX TRANSFERS -->
+  <div class="card premix-card" id="premixTransferCard">
+    <div class="card-title"><h2>🧪 Premixes</h2><span>Transferred from Bommakal • KG</span></div>
+    <div id="premixTransferList"><div class="empty">Loading...</div></div>
+  </div>
+
+  <!-- MONTHLY MIX & CONTRIBUTION -->
+  <div class="card monthly-mix-card" id="monthlyMixSection">
+    <div class="card-title">
+      <div><h2>📊 Monthly Mix &amp; Contribution</h2><span>Top 5 • Monthly % share</span></div>
+      <select id="mixMonthSelect" class="mix-month-select" onchange="setMixMonth(this.value)"></select>
+    </div>
+    <div class="monthly-mix-grid">
+      <div class="mix-panel rm">
+        <div class="mix-panel-head"><div><strong>🧪 RM Consumption Mix</strong><small id="mixRmTotal">Total -- MT</small></div><button onclick="openMonthlyMixDetails('rm')">View All →</button></div>
+        <div id="mixRmList"><div class="empty">Loading...</div></div>
+      </div>
+      <div class="mix-panel prod">
+        <div class="mix-panel-head"><div><strong>🏭 Production Mix</strong><small id="mixProdTotal">Total -- MT</small></div><button onclick="openMonthlyMixDetails('production')">View All →</button></div>
+        <div id="mixProdList"><div class="empty">Loading...</div></div>
+      </div>
+      <div class="mix-panel disp">
+        <div class="mix-panel-head"><div><strong>🚚 Dispatch Mix</strong><small id="mixDispTotal">Total -- MT</small></div><button onclick="openMonthlyMixDetails('dispatch')">View All →</button></div>
+        <div id="mixDispList"><div class="empty">Loading...</div></div>
+      </div>
+    </div>
+    <div class="monthly-mix-note">Percentages are calculated against the selected month total. “Others” combines items outside Top 5.</div>
+  </div>
+
+  <div class="desktop-grid">
+    <!-- RAW MATERIAL REORDER -->
+    <div class="card">
+      <div class="card-title"><h2>📦 Raw Material Reorder</h2><span>Tap material</span></div>
+      <div class="reorder-single-wrap">
+        <div class="reorder-section-title">🌾 Raw Materials</div>
+        <div class="stock-table">
+          <div class="stock-head"><span>Material / Avg Day</span><span>Stock</span><span>Cover</span><span>Status</span></div>
+          <div id="stockList"><div class="empty">Loading...</div></div>
+        </div>
+        <div class="reorder-section-title premix-section-title">🧪 Premixes</div>
+        <div class="stock-table premix-reorder-table">
+          <div class="stock-head"><span>Material / Avg Day</span><span>Stock</span><span>Cover</span><span>Status</span></div>
+          <div id="premixStockList"><div class="empty">Loading...</div></div>
+        </div>
+      </div>
+      
+    </div>
+
+    <!-- PRODUCTION -->
+    <div class="card">
+      <div class="card-title"><h2>🏭 Production</h2><span>Actual output in Bags</span></div>
+      <div class="production-total" id="productionTotalMain">-- Bags</div>
+      <div class="production-label">Actual Production</div>
+      <div id="productionList"><div class="empty">Loading...</div></div>
+    </div>
+
+  </div>
+
+  <!-- FEED UNIT -->
+  <div class="card">
+    <div class="card-title"><h2>🌾 Feed Unit</h2><span>Product-wise details</span></div>
+    <div id="feedUnitList"><div class="empty">Loading...</div></div>
+  </div>
+
+  <!-- RAW MATERIAL MOVEMENTS -->
+  <div class="card">
+    <div class="card-title"><h2>📋 Raw Material Movements</h2><span>Material-wise</span></div>
+    <div class="section-tabs">
+      <button class="active" onclick="setRawTab(this,'STOCK')">Stock</button>
+      <button onclick="setRawTab(this,'CONSUMPTION')">Consumption</button>
+      <button onclick="setRawTab(this,'PURCHASE')">Received</button>
+      <button onclick="setRawTab(this,'TRANSFER')">Transfer</button>
+      <button onclick="setRawTab(this,'GAIN')">Gain</button>
+      <button onclick="setRawTab(this,'SHORTAGE')">Shortage</button>
+      <button onclick="setRawTab(this,'SALE')">Sale</button>
+    </div>
+    <div id="rawCategoryList"></div>
+  </div>
+
+    <!-- PP BAGS -->
+    <div class="card">
+      <div class="card-title"><h2>🛍 PP Bags</h2><span>Tap product</span></div>
+      <div class="pp-grid" id="bagGrid"><div class="empty">Loading...</div></div>
+    </div>
+
+  <!-- TRENDS -->
+  <div class="card" id="trendsSection">
+    <div class="card-title"><h2>📊 Trends</h2><span>Swipe →</span></div>
+    <div class="trend-wrapper" id="trendWrapper">
+      <div class="trend-card"><div class="trend-header"><div><h3>📦 Raw Material Consumption</h3><small>Daily movement</small></div><select id="materialSelect" onchange="drawMaterialChart(this.value)"></select></div><canvas id="materialChart"></canvas></div>
+      <div class="trend-card"><div class="trend-header"><div><h3>📥 Purchase / Received Trend</h3><small>Daily movement</small></div></div><canvas id="purchaseChart"></canvas></div>
+      <div class="trend-card"><div class="trend-header"><div><h3>📦 Closing Stock Trend</h3><small>Daily movement</small></div></div><canvas id="closingChart"></canvas></div>
+      <div class="trend-card"><div class="trend-header"><div><h3>🏭 Production Trend</h3><small>Bags • available days</small></div></div><canvas id="productionChart"></canvas></div>
+      <div class="trend-card"><div class="trend-header"><div><h3>📈 Output % Trend</h3><small>Production records</small></div></div><canvas id="outputChart"></canvas></div>
+      <div class="trend-card"><div class="trend-header"><div><h3>⚙ Process Loss Trend</h3><small>Production records</small></div></div><canvas id="lossChart"></canvas></div>
+      <div class="trend-card"><div class="trend-header"><div><h3>🌾 Feed Unit Production / Dispatch</h3><small>MT • available days</small></div></div><canvas id="feedChart"></canvas></div>
+      <div class="trend-card"><div class="trend-header"><div><h3>🛍 PP Bags Issue / Damage</h3><small>Available records</small></div></div><canvas id="bagChart"></canvas></div>
+    </div>
+    <div class="dots" id="trendDots"></div>
+  </div>
+
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="goHome()"><div>⌂</div>Home</div>
+    <div class="nav-item" onclick="openStockDetails()"><div>📦</div>Stock</div>
+    <div class="nav-item" onclick="openProductionDetails()"><div>🏭</div>Production</div>
+    <div class="nav-item" onclick="openPPBagDetails()"><div>🛍</div>PP Bags</div>
+    <div class="nav-item" onclick="goTrend()"><div>📊</div>Reports</div>
+  </div>
+</div>
+
+<div class="modal" id="modal" onclick="outsideClose(event)">
+  <div class="modal-box">
+    <div class="modal-head"><h2 id="modalTitle">Details</h2><button class="close" onclick="closeModal()">×</button></div>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+
+<script src="app.js"></script>
+
+</body>
+</html>
