@@ -1,174 +1,799 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#f5f6f8">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="manifest" href="./manifest.json">
-<title>Manager Dashboard</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Professional Feed Plant Management and Industrial Operations Dashboard">
+  <title>Feed Plant Control Center</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-<div class="container">
-  <div class="header">
-    <div><div class="smart-greeting" id="smartGreeting">GOOD MORNING, SIR</div><div class="smart-title"><h1>Feed Plant Control Center</h1></div><p>Manager Dashboard • <span id="reportDate">Latest</span></p><span class="selected-date-chip" id="selectedDateChip">Latest</span></div>
-    <div class="header-actions">
-      <button class="header-tool" onclick="openGlobalSearch()" aria-label="Search">🔎</button>
-      <button class="header-tool" onclick="openDateSelector()" aria-label="Date selector">📅</button>
-      <button class="notify-btn" onclick="openNotifications()" aria-label="Notifications">🔔<span id="notifyBadge" class="notify-badge hidden">0</span></button>
-      <div class="plant">🏭</div>
-    </div>
-  </div>
-
-  <div class="status-line">
-    <span id="statusDot" class="status-dot"></span>
-    <span id="connectionStatus">Loading...</span>
-    <span id="lastUpdated"></span>
-    <button class="refresh" onclick="manualRefresh()">↻ Refresh</button>
-    <button id="installBtn" class="install" onclick="installPWA()">Install</button>
-  </div>
-
-  <div class="date-strip" aria-label="Date navigation">
-    <button onclick="shiftViewDate(-1)" aria-label="Previous date">‹</button>
-    <div class="date-strip-main" onclick="openDateSelector()"><div><strong id="dateStripTitle">Latest available day</strong><small id="dateStripSub">Tap to change date</small></div><span class="date-state" id="dateStripState">LATEST</span></div>
-    <button onclick="shiftViewDate(1)" aria-label="Next date">›</button>
-  </div>
-
-  <!-- MANAGEMENT QUICK VIEW -->
-  <div class="card">
-    <div class="card-title"><h2>⚡ Management Quick View</h2><span>Tap for details</span></div>
-    <div class="quick-grid manager-quick-grid">
-      <div class="quick quick-kpi" onclick="openFeedTotals('production_day')"><p>Day Production</p><strong id="qProdDay">-- MT</strong><div class="spark" id="sparkProd"></div></div>
-      <div class="quick" onclick="openFeedTotals('production_month')"><p>Month Production</p><strong id="qProdMonth">-- MT</strong></div>
-      <div class="quick quick-kpi" onclick="openFeedTotals('dispatch_day')"><p>Day Dispatch</p><strong id="qDispDay">-- MT</strong><div class="spark" id="sparkDisp"></div></div>
-      <div class="quick" onclick="openFeedTotals('dispatch_month')"><p>Month Dispatch</p><strong id="qDispMonth">-- MT</strong></div>
-      <div class="quick" onclick="openRawCategory('PURCHASE')"><p>RM Received</p><strong id="qReceived">--</strong></div>
-      <div class="quick" onclick="openRawCategory('CONSUMPTION')"><p>RM Consumption</p><strong id="qConsumption">--</strong></div>
-      <div class="quick" onclick="openStockDetails()"><p>RM Closing</p><strong id="qClosing">--</strong></div>
-      <div class="quick" onclick="openFeedClosingDetails()"><p>Feed Closing</p><strong id="qFeedClosing">-- MT</strong><small id="qFeedClosingBagsMini" style="display:block;margin-top:3px;color:#64748b;font-weight:600">-- Bags</small></div>
-      <div class="quick" onclick="openStockForecast()"><p>RM Reorder</p><strong id="mergedReorder">--</strong></div>
-    </div>
-  </div>
-
-  <!-- BOMMAKAL PREMIX TRANSFERS -->
-  <div class="card premix-card" id="premixTransferCard">
-    <div class="card-title"><h2>🧪 Premixes</h2><span>Transferred from Bommakal • KG</span></div>
-    <div id="premixTransferList"><div class="empty">Loading...</div></div>
-  </div>
-
-  <!-- MONTHLY MIX & CONTRIBUTION -->
-  <div class="card monthly-mix-card" id="monthlyMixSection">
-    <div class="card-title">
-      <div><h2>📊 Monthly Mix &amp; Contribution</h2><span>Top 5 • Monthly % share</span></div>
-      <select id="mixMonthSelect" class="mix-month-select" onchange="setMixMonth(this.value)"></select>
-    </div>
-    <div class="monthly-mix-grid">
-      <div class="mix-panel rm">
-        <div class="mix-panel-head"><div><strong>🧪 RM Consumption Mix</strong><small id="mixRmTotal">Total -- MT</small></div><button onclick="openMonthlyMixDetails('rm')">View All →</button></div>
-        <div id="mixRmList"><div class="empty">Loading...</div></div>
-      </div>
-      <div class="mix-panel prod">
-        <div class="mix-panel-head"><div><strong>🏭 Production Mix</strong><small id="mixProdTotal">Total -- MT</small></div><button onclick="openMonthlyMixDetails('production')">View All →</button></div>
-        <div id="mixProdList"><div class="empty">Loading...</div></div>
-      </div>
-      <div class="mix-panel disp">
-        <div class="mix-panel-head"><div><strong>🚚 Dispatch Mix</strong><small id="mixDispTotal">Total -- MT</small></div><button onclick="openMonthlyMixDetails('dispatch')">View All →</button></div>
-        <div id="mixDispList"><div class="empty">Loading...</div></div>
-      </div>
-    </div>
-    <div class="monthly-mix-note">Percentages are calculated against the selected month total. “Others” combines items outside Top 5.</div>
-  </div>
-
-  <div class="desktop-grid">
-    <!-- RAW MATERIAL REORDER -->
-    <div class="card">
-      <div class="card-title"><h2>📦 Raw Material Reorder</h2><span>Tap material</span></div>
-      <div class="reorder-single-wrap">
-        <div class="reorder-section-title">🌾 Raw Materials</div>
-        <div class="stock-table">
-          <div class="stock-head"><span>Material / Avg Day</span><span>Stock</span><span>Cover</span><span>Status</span></div>
-          <div id="stockList"><div class="empty">Loading...</div></div>
-        </div>
-        <div class="reorder-section-title premix-section-title">🧪 Premixes</div>
-        <div class="stock-table premix-reorder-table">
-          <div class="stock-head"><span>Material / Avg Day</span><span>Stock</span><span>Cover</span><span>Status</span></div>
-          <div id="premixStockList"><div class="empty">Loading...</div></div>
+  <!-- MAIN APP SHELL -->
+  <div class="app-layout">
+    
+    <!-- DESKTOP SIDEBAR (Visible >= 1024px) -->
+    <aside class="desktop-sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">🏭</div>
+        <div class="brand-text">
+          <h2>Feed Plant OS</h2>
+          <span>Operations Control</span>
         </div>
       </div>
+
+      <div class="sidebar-status-box">
+        <div class="sidebar-status-header">
+          <span class="pulse-indicator"></span>
+          <span class="sidebar-status-title">SYSTEM STATUS</span>
+        </div>
+        <div class="sidebar-status-body">
+          <strong id="sidebarConnectionStatus">Live Engine</strong>
+          <small id="sidebarReportDate">Latest</small>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-group-title">MAIN NAVIGATION</div>
+        <a href="javascript:void(0)" class="sidebar-nav-item active" onclick="goHome()">
+          <span class="nav-icon">⌂</span>
+          <span class="nav-label">Overview</span>
+        </a>
+        <a href="javascript:void(0)" class="sidebar-nav-item" onclick="openStockDetails()">
+          <span class="nav-icon">📦</span>
+          <span class="nav-label">Stock &amp; Inventory</span>
+        </a>
+        <a href="javascript:void(0)" class="sidebar-nav-item" onclick="openProductionDetails()">
+          <span class="nav-icon">🏭</span>
+          <span class="nav-label">Production Unit</span>
+        </a>
+        <a href="javascript:void(0)" class="sidebar-nav-item" onclick="openFeedTotals('production_day')">
+          <span class="nav-icon">🌾</span>
+          <span class="nav-label">Feed Unit</span>
+        </a>
+        <a href="javascript:void(0)" class="sidebar-nav-item" onclick="openPPBagDetails()">
+          <span class="nav-icon">🛍</span>
+          <span class="nav-label">PP Bags Control</span>
+        </a>
+        <a href="javascript:void(0)" class="sidebar-nav-item" onclick="goTrend()">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">Trends &amp; Reports</span>
+        </a>
+
+        <div class="nav-group-title">MANAGEMENT AUDIT</div>
+        <a href="javascript:void(0)" class="sidebar-nav-item" onclick="openDataHealth()">
+          <span class="nav-icon">🛡</span>
+          <span class="nav-label">Data Issues &amp; Health</span>
+        </a>
+        <a href="javascript:void(0)" class="sidebar-nav-item" onclick="openStockForecast()">
+          <span class="nav-icon">⏱</span>
+          <span class="nav-label">Reorder Forecast</span>
+        </a>
+        <a href="javascript:void(0)" class="sidebar-nav-item" onclick="copyDailyReport()">
+          <span class="nav-icon">📋</span>
+          <span class="nav-label">Export Daily Brief</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="sidebar-action-btn" onclick="manualRefresh()">
+          <span>↻</span> Sync Live Data
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN DASHBOARD CONTENT AREA -->
+    <main class="main-content">
       
+      <!-- TOP INDUSTRIAL HEADER -->
+      <header class="app-header">
+        <div class="header-main">
+          <div class="smart-greeting" id="smartGreeting">GOOD MORNING, SIR</div>
+          <div class="smart-title">
+            <h1>Feed Plant Control Center</h1>
+            <span class="live-tag">INDUSTRIAL OPS</span>
+          </div>
+          <div class="header-meta">
+            <span>Plant Manager Dashboard</span>
+            <span class="meta-dot">•</span>
+            <span class="selected-date-chip" id="selectedDateChip">Latest</span>
+            <span class="hidden" id="reportDate">Latest</span>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <button class="header-tool-btn" onclick="openGlobalSearch()" title="Search materials or products" aria-label="Search">
+            <span class="tool-icon">🔍</span>
+            <span class="tool-label">Search</span>
+          </button>
+
+          <button class="header-tool-btn" onclick="openDateSelector()" title="Switch dashboard date" aria-label="Date selector">
+            <span class="tool-icon">📅</span>
+            <span class="tool-label">Date</span>
+          </button>
+
+          <button class="notify-btn" onclick="openNotifications()" title="Alerts & Notifications" aria-label="Notifications">
+            <span class="bell-icon">🔔</span>
+            <span id="notifyBadge" class="notify-badge hidden">0</span>
+          </button>
+
+          <button class="refresh-btn" onclick="manualRefresh()" title="Refresh API data" aria-label="Refresh">
+            <span class="refresh-icon">↻</span>
+            <span class="refresh-label">Refresh</span>
+          </button>
+
+          <button id="installBtn" class="install-btn" onclick="installPWA()">Install App</button>
+
+          <div class="plant-avatar" title="Feed Plant Active Node">🏭</div>
+        </div>
+      </header>
+
+      <!-- SYSTEM STATUS & DIAGNOSTICS BAR -->
+      <div class="status-strip">
+        <div class="status-strip-left">
+          <span id="statusDot" class="status-dot"></span>
+          <span id="connectionStatus" class="connection-label">Connecting to feed engine...</span>
+          <span class="status-sep">|</span>
+          <span id="lastUpdated" class="updated-label">Syncing...</span>
+        </div>
+        <div class="status-strip-right">
+          <button class="mini-tool-btn" onclick="copyDailyReport()">📋 Copy Report</button>
+          <button class="mini-tool-btn" onclick="downloadDailyReport()">⬇ Download</button>
+        </div>
+      </div>
+
+      <!-- INTERACTIVE DATE NAVIGATOR STRIP -->
+      <section class="date-strip-container" aria-label="Date navigation">
+        <div class="date-strip">
+          <button class="date-nav-btn prev" onclick="shiftViewDate(-1)" aria-label="Previous date" title="Previous available date">‹</button>
+          <div class="date-strip-main" onclick="openDateSelector()" title="Click to select specific date">
+            <div class="date-strip-info">
+              <span class="date-strip-hint" id="dateStripSub">Tap to change dashboard date</span>
+              <strong class="date-strip-title" id="dateStripTitle">Latest available day</strong>
+            </div>
+            <div class="date-strip-badge-wrap">
+              <span class="date-state" id="dateStripState">LATEST</span>
+              <span class="date-picker-icon">📅</span>
+            </div>
+          </div>
+          <button class="date-nav-btn next" onclick="shiftViewDate(1)" aria-label="Next date" title="Next available date">›</button>
+        </div>
+      </section>
+
+      <!-- OPERATIONAL EFFICIENCY & CONTROL METRICS BANNER -->
+      <section class="card control-summary-card">
+        <div class="card-header">
+          <div class="header-text-group">
+            <span class="card-eyebrow">DIAGNOSTICS &amp; RECONCILIATION</span>
+            <h2>⚙ Operational Control &amp; Efficiency</h2>
+          </div>
+          <div class="header-pill-group">
+            <span class="control-date-chip" id="controlDate">Latest data</span>
+            <button class="health-action-btn" onclick="openDataHealth()">
+              <span id="healthIcon">✓</span>
+              <span id="healthText">Audit Status</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="control-metrics-grid">
+          <div class="control-stat-card" onclick="openDataHealth()">
+            <div class="stat-top">
+              <span class="stat-label">Stock &amp; Data Issues</span>
+              <span class="stat-icon-badge warning">⚠</span>
+            </div>
+            <div class="stat-val-group">
+              <strong id="ctlMismatch">0</strong>
+              <small>Reconciliation diffs</small>
+            </div>
+          </div>
+
+          <div class="control-stat-card" onclick="openStockForecast()">
+            <div class="stat-top">
+              <span class="stat-label">Reorder Items</span>
+              <span class="stat-icon-badge danger">🔴</span>
+            </div>
+            <div class="stat-val-group">
+              <strong id="ctlReorder">0</strong>
+              <small>At/below safety stock</small>
+            </div>
+          </div>
+
+          <div class="control-stat-card" onclick="openProductionDetails()">
+            <div class="stat-top">
+              <span class="stat-label">Production Efficiency</span>
+              <span class="stat-icon-badge success">⚡</span>
+            </div>
+            <div class="stat-val-group">
+              <strong id="ctlEfficiency">--%</strong>
+              <small>Average output rate</small>
+            </div>
+          </div>
+
+          <div class="control-stat-card" onclick="openProductionDetails()">
+            <div class="stat-top">
+              <span class="stat-label">Avg Process Loss</span>
+              <span class="stat-icon-badge neutral">⚙</span>
+            </div>
+            <div class="stat-val-group">
+              <strong id="ctlLoss">--%</strong>
+              <small>Milling process loss</small>
+            </div>
+          </div>
+
+          <div class="control-stat-card" onclick="document.getElementById('premixTransferCard')?.scrollIntoView({behavior:'smooth'})">
+            <div class="stat-top">
+              <span class="stat-label">Premix Transfers</span>
+              <span class="stat-icon-badge info">🧪</span>
+            </div>
+            <div class="stat-val-group">
+              <strong id="ctlPremix">-- MT</strong>
+              <small>From Bommakal unit</small>
+            </div>
+          </div>
+
+          <div class="control-stat-card" onclick="openPPBagDetails()">
+            <div class="stat-top">
+              <span class="stat-label">PP Bag Damage</span>
+              <span class="stat-icon-badge alert">👜</span>
+            </div>
+            <div class="stat-val-group">
+              <strong id="ctlBagDamage">0</strong>
+              <small>Damaged units logged</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hidden hooks for intelligence layer if needed -->
+        <div class="hidden">
+          <span id="intelDate"></span>
+          <span id="intelAttention"></span>
+          <span id="intelCoverage"></span>
+          <span id="intelCompare"></span>
+          <span id="intelNote"></span>
+          <span id="intelStatusPill"></span>
+        </div>
+      </section>
+
+      <!-- MANAGEMENT QUICK VIEW (KEY PERFORMANCE INDICATORS) -->
+      <section class="card kpi-overview-card">
+        <div class="card-header">
+          <div class="header-text-group">
+            <span class="card-eyebrow">PRIMARY METRICS</span>
+            <h2>⚡ Management Quick View</h2>
+          </div>
+          <span class="header-hint">Tap any metric card for breakdown</span>
+        </div>
+
+        <div class="quick-grid manager-quick-grid">
+          <!-- Day Production -->
+          <div class="quick quick-kpi kpi-prod-day" onclick="openFeedTotals('production_day')" title="Tap for product-wise Day Production">
+            <div class="quick-header">
+              <p>Day Production</p>
+              <span class="kpi-tag tag-primary">Feed Unit</span>
+            </div>
+            <strong id="qProdDay">-- MT</strong>
+            <div class="spark" id="sparkProd">
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+          </div>
+
+          <!-- Month Production -->
+          <div class="quick kpi-prod-month" onclick="openFeedTotals('production_month')" title="Tap for Month Production breakdown">
+            <div class="quick-header">
+              <p>Month Production</p>
+              <span class="kpi-tag tag-secondary">MTD</span>
+            </div>
+            <strong id="qProdMonth">-- MT</strong>
+            <span class="kpi-footnote">Cumulative output</span>
+          </div>
+
+          <!-- Day Dispatch -->
+          <div class="quick quick-kpi kpi-disp-day" onclick="openFeedTotals('dispatch_day')" title="Tap for Day Dispatch breakdown">
+            <div class="quick-header">
+              <p>Day Dispatch</p>
+              <span class="kpi-tag tag-amber">Outbound</span>
+            </div>
+            <strong id="qDispDay">-- MT</strong>
+            <div class="spark" id="sparkDisp">
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+          </div>
+
+          <!-- Month Dispatch -->
+          <div class="quick kpi-disp-month" onclick="openFeedTotals('dispatch_month')" title="Tap for Month Dispatch breakdown">
+            <div class="quick-header">
+              <p>Month Dispatch</p>
+              <span class="kpi-tag tag-secondary">MTD</span>
+            </div>
+            <strong id="qDispMonth">-- MT</strong>
+            <span class="kpi-footnote">Cumulative dispatches</span>
+          </div>
+
+          <!-- RM Received -->
+          <div class="quick kpi-rm-rcv" onclick="openRawCategory('PURCHASE')" title="Tap for Raw Material Received details">
+            <div class="quick-header">
+              <p>RM Received</p>
+              <span class="kpi-tag tag-green">Inbound</span>
+            </div>
+            <strong id="qReceived">--</strong>
+            <span class="kpi-footnote">Purchase &amp; Transfers</span>
+          </div>
+
+          <!-- RM Consumption -->
+          <div class="quick kpi-rm-cons" onclick="openRawCategory('CONSUMPTION')" title="Tap for Raw Material Consumption details">
+            <div class="quick-header">
+              <p>RM Consumption</p>
+              <span class="kpi-tag tag-rose">Consumed</span>
+            </div>
+            <strong id="qConsumption">--</strong>
+            <span class="kpi-footnote">Plant consumption</span>
+          </div>
+
+          <!-- RM Closing Stock -->
+          <div class="quick kpi-rm-close" onclick="openStockDetails()" title="Tap for complete Raw Material Stock">
+            <div class="quick-header">
+              <p>RM Closing Stock</p>
+              <span class="kpi-tag tag-blue">Warehouse</span>
+            </div>
+            <strong id="qClosing">--</strong>
+            <span class="kpi-footnote">Total materials stock</span>
+          </div>
+
+          <!-- Feed Closing Stock -->
+          <div class="quick kpi-feed-close" onclick="openFeedClosingDetails()" title="Tap for Feed Closing Stock details">
+            <div class="quick-header">
+              <p>Feed Closing Stock</p>
+              <span class="kpi-tag tag-purple">Finished</span>
+            </div>
+            <strong id="qFeedClosing">-- MT</strong>
+            <small id="qFeedClosingBagsMini" class="feed-bags-mini-label">-- Bags</small>
+          </div>
+
+          <!-- RM Reorder Alert -->
+          <div class="quick kpi-reorder" onclick="openStockForecast()" title="Tap to view reorder items">
+            <div class="quick-header">
+              <p>RM Reorder</p>
+              <span class="kpi-tag tag-red">Action</span>
+            </div>
+            <strong id="mergedReorder">--</strong>
+            <span class="kpi-footnote">Items requiring purchase</span>
+          </div>
+        </div>
+
+        <!-- Auxiliary management counters -->
+        <div class="aux-kpi-bar">
+          <div class="aux-item" onclick="openDataHealth()">
+            <span>Data Issues</span>
+            <b id="mergedIssues">0</b>
+          </div>
+          <div class="aux-item" onclick="document.getElementById('premixTransferCard')?.scrollIntoView({behavior:'smooth'})">
+            <span>Premix Transfers</span>
+            <b id="mergedPremix">-- KG</b>
+          </div>
+          <div class="aux-item" onclick="openPPBagDetails()">
+            <span>PP Bag Damage</span>
+            <b id="mergedDamage">0</b>
+          </div>
+        </div>
+      </section>
+
+      <!-- TWO-COLUMN INDUSTRIAL OPERATIONS GRID -->
+      <div class="desktop-grid">
+        
+        <!-- COLUMN 1: RAW MATERIAL STOCK & REORDER MONITOR -->
+        <div class="ops-column">
+          <div class="card stock-reorder-card">
+            <div class="card-header">
+              <div class="header-text-group">
+                <span class="card-eyebrow">INVENTORY CONTROL</span>
+                <h2>📦 Raw Material Reorder</h2>
+              </div>
+              <span class="header-hint">Tap material row for audit &amp; transactions</span>
+            </div>
+
+            <div class="reorder-single-wrap">
+              <!-- Raw Materials Section -->
+              <div class="reorder-group-header">
+                <div class="reorder-group-title">
+                  <span class="icon">🌾</span>
+                  <strong>Raw Materials</strong>
+                </div>
+                <span class="reorder-group-badge">Bulk Stock (MT)</span>
+              </div>
+
+              <div class="stock-table-card">
+                <div class="stock-head">
+                  <span class="col-mat">Material / Avg Day</span>
+                  <span class="col-stock">Stock</span>
+                  <span class="col-cover">Coverage</span>
+                  <span class="col-status">Status</span>
+                </div>
+                <div id="stockList" class="stock-body">
+                  <div class="table-loading">
+                    <span class="spinner"></span> Loading stock data...
+                  </div>
+                </div>
+              </div>
+
+              <!-- Premixes Section -->
+              <div class="reorder-group-header premix-group-header">
+                <div class="reorder-group-title">
+                  <span class="icon">🧪</span>
+                  <strong>Premixes</strong>
+                </div>
+                <span class="reorder-group-badge">Micro-Nutrients (KG)</span>
+              </div>
+
+              <div class="stock-table-card premix-reorder-table">
+                <div class="stock-head">
+                  <span class="col-mat">Material / Avg Day</span>
+                  <span class="col-stock">Stock</span>
+                  <span class="col-cover">Coverage</span>
+                  <span class="col-status">Status</span>
+                </div>
+                <div id="premixStockList" class="stock-body">
+                  <div class="table-loading">
+                    <span class="spinner"></span> Loading premix data...
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BOMMAKAL PREMIX TRANSFERS CARD -->
+          <div class="card premix-card" id="premixTransferCard">
+            <div class="card-header">
+              <div class="header-text-group">
+                <span class="card-eyebrow">INTER-PLANT TRANSFERS</span>
+                <h2>🧪 Premix Transfers</h2>
+              </div>
+              <span class="header-tag">From Bommakal (KG)</span>
+            </div>
+            <div id="premixTransferList" class="premix-list-body">
+              <div class="empty">Loading premix transfer records...</div>
+            </div>
+          </div>
+
+          <!-- RAW MATERIAL MOVEMENTS WITH TABBED FILTERS -->
+          <div class="card rm-movements-card">
+            <div class="card-header">
+              <div class="header-text-group">
+                <span class="card-eyebrow">AUDIT TRAIL</span>
+                <h2>📋 Raw Material Movements</h2>
+              </div>
+              <span class="header-hint">Filter by transaction category</span>
+            </div>
+
+            <div class="section-tabs" role="tablist">
+              <button class="active" onclick="setRawTab(this,'STOCK')">Closing Stock</button>
+              <button onclick="setRawTab(this,'CONSUMPTION')">Consumption</button>
+              <button onclick="setRawTab(this,'PURCHASE')">Received</button>
+              <button onclick="setRawTab(this,'TRANSFER')">Transfers</button>
+              <button onclick="setRawTab(this,'GAIN')">Gain</button>
+              <button onclick="setRawTab(this,'SHORTAGE')">Shortage</button>
+              <button onclick="setRawTab(this,'SALE')">Sale</button>
+            </div>
+
+            <div id="rawCategoryList" class="movements-container">
+              <div class="empty">Loading material movements...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- COLUMN 2: PRODUCTION, MONTHLY MIX, FEED UNIT & PP BAGS -->
+        <div class="ops-column">
+          
+          <!-- PRODUCTION PERFORMANCE CARD -->
+          <div class="card production-card">
+            <div class="card-header">
+              <div class="header-text-group">
+                <span class="card-eyebrow">MILLING OPERATIONS</span>
+                <h2>🏭 Plant Production</h2>
+              </div>
+              <span class="header-tag highlight">Bags Output</span>
+            </div>
+
+            <div class="production-headline-banner">
+              <div class="prod-headline-left">
+                <span class="production-label">Total Actual Production</span>
+                <div class="production-total" id="productionTotalMain">-- Bags</div>
+              </div>
+              <div class="prod-headline-badge">
+                <span class="prod-badge-icon">⚡</span>
+                <span>Active Shift</span>
+              </div>
+            </div>
+
+            <div class="production-list-container">
+              <div id="productionList" class="prod-list-body">
+                <div class="empty">Loading production lines...</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- MONTHLY MIX & CONTRIBUTION CARD -->
+          <div class="card monthly-mix-card" id="monthlyMixSection">
+            <div class="card-header">
+              <div class="header-text-group">
+                <span class="card-eyebrow">SHARE OF VOLUME</span>
+                <h2>📊 Monthly Mix &amp; Contribution</h2>
+              </div>
+              <div class="mix-controls">
+                <label for="mixMonthSelect" class="sr-only">Month</label>
+                <select id="mixMonthSelect" class="mix-month-select" onchange="setMixMonth(this.value)"></select>
+              </div>
+            </div>
+
+            <div class="monthly-mix-grid">
+              <!-- RM Consumption Mix -->
+              <div class="mix-panel rm">
+                <div class="mix-panel-head">
+                  <div>
+                    <strong>🧪 RM Consumption Mix</strong>
+                    <small id="mixRmTotal">Total -- MT</small>
+                  </div>
+                  <button class="mix-all-btn" onclick="openMonthlyMixDetails('rm')">View All →</button>
+                </div>
+                <div id="mixRmList" class="mix-list">
+                  <div class="empty">Loading...</div>
+                </div>
+              </div>
+
+              <!-- Production Mix -->
+              <div class="mix-panel prod">
+                <div class="mix-panel-head">
+                  <div>
+                    <strong>🏭 Production Mix</strong>
+                    <small id="mixProdTotal">Total -- MT</small>
+                  </div>
+                  <button class="mix-all-btn" onclick="openMonthlyMixDetails('production')">View All →</button>
+                </div>
+                <div id="mixProdList" class="mix-list">
+                  <div class="empty">Loading...</div>
+                </div>
+              </div>
+
+              <!-- Dispatch Mix -->
+              <div class="mix-panel disp">
+                <div class="mix-panel-head">
+                  <div>
+                    <strong>🚚 Dispatch Mix</strong>
+                    <small id="mixDispTotal">Total -- MT</small>
+                  </div>
+                  <button class="mix-all-btn" onclick="openMonthlyMixDetails('dispatch')">View All →</button>
+                </div>
+                <div id="mixDispList" class="mix-list">
+                  <div class="empty">Loading...</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="monthly-mix-note">
+              Percentages calculate proportion against monthly total. “Others” aggregates volumes beyond Top 5 products.
+            </div>
+          </div>
+
+          <!-- FEED UNIT PRODUCT-WISE SUMMARY -->
+          <div class="card feed-unit-card">
+            <div class="card-header">
+              <div class="header-text-group">
+                <span class="card-eyebrow">FINISHED FEEDS</span>
+                <h2>🌾 Feed Unit Dispatches &amp; Closing</h2>
+              </div>
+              <span class="header-hint">Product-wise metrics in MT</span>
+            </div>
+
+            <div id="feedUnitList" class="feed-unit-body">
+              <div class="empty">Loading Feed Unit inventory...</div>
+            </div>
+          </div>
+
+          <!-- PP BAGS INVENTORY CONTROL -->
+          <div class="card pp-bags-card">
+            <div class="card-header">
+              <div class="header-text-group">
+                <span class="card-eyebrow">PACKAGING INVENTORY</span>
+                <h2>🛍 PP Bags Packaging</h2>
+              </div>
+              <span class="header-hint">Closing • Issue • Damage tracking</span>
+            </div>
+
+            <div class="pp-grid" id="bagGrid">
+              <div class="empty">Loading PP Bag records...</div>
+            </div>
+          </div>
+
+          <!-- DATA QUALITY & AUDITING PANEL HOST -->
+          <div id="dataQualityPanelHost"></div>
+
+        </div>
+      </div>
+
+      <!-- ANALYTICS & TREND VISUALIZATION SECTION -->
+      <section class="card trends-section-card" id="trendsSection">
+        <div class="card-header">
+          <div class="header-text-group">
+            <span class="card-eyebrow">TIME-SERIES ANALYTICS</span>
+            <h2>📈 Operational Trends &amp; Telemetry</h2>
+          </div>
+          <div class="trend-select-wrap">
+            <span class="trend-swipe-hint">Swipe charts horizontally →</span>
+          </div>
+        </div>
+
+        <div class="trend-wrapper" id="trendWrapper">
+          
+          <!-- 1: RM Consumption Trend -->
+          <div class="trend-card">
+            <div class="trend-header">
+              <div>
+                <h3>📦 Raw Material Daily Consumption</h3>
+                <small>Select material to inspect trend</small>
+              </div>
+              <select id="materialSelect" class="trend-material-dropdown" onchange="drawMaterialChart(this.value)"></select>
+            </div>
+            <div class="canvas-wrap">
+              <canvas id="materialChart"></canvas>
+            </div>
+          </div>
+
+          <!-- 2: Purchase Trend -->
+          <div class="trend-card">
+            <div class="trend-header">
+              <div>
+                <h3>📥 Inbound / Purchase Trend</h3>
+                <small>Daily material arrivals (MT)</small>
+              </div>
+            </div>
+            <div class="canvas-wrap">
+              <canvas id="purchaseChart"></canvas>
+            </div>
+          </div>
+
+          <!-- 3: Closing Stock Trend -->
+          <div class="trend-card">
+            <div class="trend-header">
+              <div>
+                <h3>📦 Total RM Closing Stock Trend</h3>
+                <small>Aggregated warehouse balances</small>
+              </div>
+            </div>
+            <div class="canvas-wrap">
+              <canvas id="closingChart"></canvas>
+            </div>
+          </div>
+
+          <!-- 4: Production Trend -->
+          <div class="trend-card">
+            <div class="trend-header">
+              <div>
+                <h3>🏭 Plant Production Output</h3>
+                <small>Daily Bags output across shifts</small>
+              </div>
+            </div>
+            <div class="canvas-wrap">
+              <canvas id="productionChart"></canvas>
+            </div>
+          </div>
+
+          <!-- 5: Output % Efficiency -->
+          <div class="trend-card">
+            <div class="trend-header">
+              <div>
+                <h3>⚡ Production Efficiency (%)</h3>
+                <small>Output percentage against standard</small>
+              </div>
+            </div>
+            <div class="canvas-wrap">
+              <canvas id="outputChart"></canvas>
+            </div>
+          </div>
+
+          <!-- 6: Process Loss % -->
+          <div class="trend-card">
+            <div class="trend-header">
+              <div>
+                <h3>⚙ Milling Process Loss (%)</h3>
+                <small>Recorded production variance</small>
+              </div>
+            </div>
+            <div class="canvas-wrap">
+              <canvas id="lossChart"></canvas>
+            </div>
+          </div>
+
+          <!-- 7: Feed Unit Trend -->
+          <div class="trend-card">
+            <div class="trend-header">
+              <div>
+                <h3>🌾 Feed Unit Net Movement</h3>
+                <small>Production minus Dispatches (MT)</small>
+              </div>
+            </div>
+            <div class="canvas-wrap">
+              <canvas id="feedChart"></canvas>
+            </div>
+          </div>
+
+          <!-- 8: PP Bags Trend -->
+          <div class="trend-card">
+            <div class="trend-header">
+              <div>
+                <h3>🛍 PP Bags Packaging Utilization</h3>
+                <small>Issue and damage trends</small>
+              </div>
+            </div>
+            <div class="canvas-wrap">
+              <canvas id="bagChart"></canvas>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="dots" id="trendDots"></div>
+      </section>
+
+      <!-- FOOTER -->
+      <footer class="app-footer">
+        <div class="footer-left">
+          <span>Feed Plant Control Center</span>
+          <span class="footer-sep">•</span>
+          <span>Industrial Operations Management</span>
+        </div>
+        <div class="footer-right">
+          <span>Auto-sync enabled</span>
+        </div>
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- MOBILE STICKY BOTTOM NAVIGATION BAR -->
+  <nav class="bottom-nav" aria-label="Mobile Navigation">
+    <div class="nav-item active" onclick="goHome()">
+      <div class="nav-icon">⌂</div>
+      <span class="nav-label">Home</span>
     </div>
-
-    <!-- PRODUCTION -->
-    <div class="card">
-      <div class="card-title"><h2>🏭 Production</h2><span>Actual output in Bags</span></div>
-      <div class="production-total" id="productionTotalMain">-- Bags</div>
-      <div class="production-label">Actual Production</div>
-      <div id="productionList"><div class="empty">Loading...</div></div>
+    <div class="nav-item" onclick="openStockDetails()">
+      <div class="nav-icon">📦</div>
+      <span class="nav-label">Stock</span>
     </div>
-
-  </div>
-
-  <!-- FEED UNIT -->
-  <div class="card">
-    <div class="card-title"><h2>🌾 Feed Unit</h2><span>Product-wise details</span></div>
-    <div id="feedUnitList"><div class="empty">Loading...</div></div>
-  </div>
-
-  <!-- RAW MATERIAL MOVEMENTS -->
-  <div class="card">
-    <div class="card-title"><h2>📋 Raw Material Movements</h2><span>Material-wise</span></div>
-    <div class="section-tabs">
-      <button class="active" onclick="setRawTab(this,'STOCK')">Stock</button>
-      <button onclick="setRawTab(this,'CONSUMPTION')">Consumption</button>
-      <button onclick="setRawTab(this,'PURCHASE')">Received</button>
-      <button onclick="setRawTab(this,'TRANSFER')">Transfer</button>
-      <button onclick="setRawTab(this,'GAIN')">Gain</button>
-      <button onclick="setRawTab(this,'SHORTAGE')">Shortage</button>
-      <button onclick="setRawTab(this,'SALE')">Sale</button>
+    <div class="nav-item" onclick="openProductionDetails()">
+      <div class="nav-icon">🏭</div>
+      <span class="nav-label">Production</span>
     </div>
-    <div id="rawCategoryList"></div>
-  </div>
-
-    <!-- PP BAGS -->
-    <div class="card">
-      <div class="card-title"><h2>🛍 PP Bags</h2><span>Tap product</span></div>
-      <div class="pp-grid" id="bagGrid"><div class="empty">Loading...</div></div>
+    <div class="nav-item" onclick="openPPBagDetails()">
+      <div class="nav-icon">🛍</div>
+      <span class="nav-label">PP Bags</span>
     </div>
-
-  <!-- TRENDS -->
-  <div class="card" id="trendsSection">
-    <div class="card-title"><h2>📊 Trends</h2><span>Swipe →</span></div>
-    <div class="trend-wrapper" id="trendWrapper">
-      <div class="trend-card"><div class="trend-header"><div><h3>📦 Raw Material Consumption</h3><small>Daily movement</small></div><select id="materialSelect" onchange="drawMaterialChart(this.value)"></select></div><canvas id="materialChart"></canvas></div>
-      <div class="trend-card"><div class="trend-header"><div><h3>📥 Purchase / Received Trend</h3><small>Daily movement</small></div></div><canvas id="purchaseChart"></canvas></div>
-      <div class="trend-card"><div class="trend-header"><div><h3>📦 Closing Stock Trend</h3><small>Daily movement</small></div></div><canvas id="closingChart"></canvas></div>
-      <div class="trend-card"><div class="trend-header"><div><h3>🏭 Production Trend</h3><small>Bags • available days</small></div></div><canvas id="productionChart"></canvas></div>
-      <div class="trend-card"><div class="trend-header"><div><h3>📈 Output % Trend</h3><small>Production records</small></div></div><canvas id="outputChart"></canvas></div>
-      <div class="trend-card"><div class="trend-header"><div><h3>⚙ Process Loss Trend</h3><small>Production records</small></div></div><canvas id="lossChart"></canvas></div>
-      <div class="trend-card"><div class="trend-header"><div><h3>🌾 Feed Unit Production / Dispatch</h3><small>MT • available days</small></div></div><canvas id="feedChart"></canvas></div>
-      <div class="trend-card"><div class="trend-header"><div><h3>🛍 PP Bags Issue / Damage</h3><small>Available records</small></div></div><canvas id="bagChart"></canvas></div>
+    <div class="nav-item" onclick="goTrend()">
+      <div class="nav-icon">📊</div>
+      <span class="nav-label">Reports</span>
     </div>
-    <div class="dots" id="trendDots"></div>
+  </nav>
+
+  <!-- MODAL / DETAIL DRAWER CONTAINER -->
+  <div class="modal" id="modal" onclick="outsideClose(event)" aria-modal="true" role="dialog">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <div class="modal-head">
+        <div class="modal-title-wrap">
+          <span class="modal-eyebrow">FEED PLANT AUDIT</span>
+          <h2 id="modalTitle">Details</h2>
+        </div>
+        <button class="close" onclick="closeModal()" aria-label="Close dialog">✕</button>
+      </div>
+      <div id="modalContent" class="modal-body-scroll"></div>
+    </div>
   </div>
 
-  <div class="bottom-nav">
-    <div class="nav-item active" onclick="goHome()"><div>⌂</div>Home</div>
-    <div class="nav-item" onclick="openStockDetails()"><div>📦</div>Stock</div>
-    <div class="nav-item" onclick="openProductionDetails()"><div>🏭</div>Production</div>
-    <div class="nav-item" onclick="openPPBagDetails()"><div>🛍</div>PP Bags</div>
-    <div class="nav-item" onclick="goTrend()"><div>📊</div>Reports</div>
-  </div>
-</div>
-
-<div class="modal" id="modal" onclick="outsideClose(event)">
-  <div class="modal-box">
-    <div class="modal-head"><h2 id="modalTitle">Details</h2><button class="close" onclick="closeModal()">×</button></div>
-    <div id="modalContent"></div>
-  </div>
-</div>
-
-  <script src="app.js"></script>
+  <!-- ORIGINAL APP ENGINE (UNCHANGED) -->
+  <script src="./app.js"></script>
 </body>
 </html>

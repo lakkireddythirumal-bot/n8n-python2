@@ -1,0 +1,6 @@
+{
+  "name": "Feed Plant Control Center",
+  "description": "Professional Feed Plant Management and Industrial Operations Dashboard with real-time stock, production, and reconciliation monitoring.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
