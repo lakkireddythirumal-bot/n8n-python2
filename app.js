@@ -263,7 +263,7 @@ function loadDashboard(attempt=0){
       }else{
         fail("API timeout","API_TIMEOUT");
       }
-    },20000);
+    },60000);
   });
 }
 
